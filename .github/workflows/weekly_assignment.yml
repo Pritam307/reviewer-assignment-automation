@@ -1,0 +1,69 @@
+# GitHub Actions Workflow: Weekly Reviewer Assignment
+# Runs every Monday at 10:00 AM IST (4:30 AM UTC)
+
+name: Weekly Reviewer Assignment
+
+on:
+  # Scheduled trigger - Cron syntax (UTC timezone)
+  # 10:00 AM IST = 4:30 AM UTC
+  schedule:
+    - cron: '15 4 * * 1'  # Every Monday at 4:30 AM UTC (10:00 AM IST)
+  
+  # Manual trigger (for testing)
+  workflow_dispatch:
+
+jobs:
+  run-assignment:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Step 4: Run the reviewer assignment script
+      - name: Run Reviewer Assignment Script
+        env:
+          # Database credentials (from GitHub Secrets)
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          
+          # Email credentials (from GitHub Secrets)
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          
+          # Reviewer email addresses (from GitHub Secrets)
+          REVIEWER_1_EMAIL: ${{ secrets.REVIEWER_1_EMAIL }}
+          REVIEWER_2_EMAIL: ${{ secrets.REVIEWER_2_EMAIL }}
+          REVIEWER_3_EMAIL: ${{ secrets.REVIEWER_3_EMAIL }}
+          REVIEWER_4_EMAIL: ${{ secrets.REVIEWER_4_EMAIL }}
+          REVIEWER_5_EMAIL: ${{ secrets.REVIEWER_5_EMAIL }}
+          
+        run: |
+          python scripts/reviewer_assignment.py
+
+      # Step 5: Upload assignment report as artifact (optional)
+      - name: Upload Assignment Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: reviewer-assignment-report
+          path: output/
+          retention-days: 30
