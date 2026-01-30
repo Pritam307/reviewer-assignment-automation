@@ -39,22 +39,31 @@ DB_CONFIG = {
 }
 
 # Email configuration (from environment variables)
+# EMAIL_CONFIG = {
+#     'smtp_host': os.environ.get('SMTP_HOST'),
+#     'smtp_port': int(os.environ.get('SMTP_PORT', 587)),
+#     'smtp_user': os.environ.get('SMTP_USER'),
+#     'smtp_password': os.environ.get('SMTP_PASSWORD'),
+#     'from_email': os.environ.get('EMAIL_FROM')
+# }
+# Email configuration (Gmail)
 EMAIL_CONFIG = {
-    'smtp_host': os.environ.get('SMTP_HOST'),
-    'smtp_port': int(os.environ.get('SMTP_PORT', 587)),
-    'smtp_user': os.environ.get('SMTP_USER'),
-    'smtp_password': os.environ.get('SMTP_PASSWORD'),
-    'from_email': os.environ.get('EMAIL_FROM')
+    'smtp_host': 'smtp.gmail.com',
+    'smtp_port': 587,
+    'smtp_user': os.environ.get('GMAIL_USER', 'abc123@gmail.com'),
+    'smtp_password': os.environ.get('GMAIL_APP_PASSWORD'),
+    'from_email': os.environ.get('GMAIL_USER', 'abc123@gmail.com')
 }
 
+
 # Reviewer email mapping
-REVIEWER_EMAILS = {
-    'Reviewer 1': os.environ.get('REVIEWER_1_EMAIL'),
-    'Reviewer 2': os.environ.get('REVIEWER_2_EMAIL'),
-    'Reviewer 3': os.environ.get('REVIEWER_3_EMAIL'),
-    'Reviewer 4': os.environ.get('REVIEWER_4_EMAIL'),
-    'Reviewer 5': os.environ.get('REVIEWER_5_EMAIL')
-}
+# REVIEWER_EMAILS = {
+#     'Reviewer 1': os.environ.get('REVIEWER_1_EMAIL'),
+#     'Reviewer 2': os.environ.get('REVIEWER_2_EMAIL'),
+#     'Reviewer 3': os.environ.get('REVIEWER_3_EMAIL'),
+#     'Reviewer 4': os.environ.get('REVIEWER_4_EMAIL'),
+#     'Reviewer 5': os.environ.get('REVIEWER_5_EMAIL')
+# }
 
 
 # =============================================================================
@@ -348,20 +357,79 @@ def send_email(to_email, reviewer_name, df_reviewer, report_filepath, date_range
         print(f"✗ Failed to send email to {reviewer_name}: {e}")
 
 
-def send_notifications(df, report_filepath, date_range):
-    """Send email notifications to all reviewers."""
-    print("\n--- Sending Email Notifications ---")
+# def send_notifications(df, report_filepath, date_range):
+#     """Send email notifications to all reviewers."""
+#     print("\n--- Sending Email Notifications ---")
     
-    for reviewer, email in REVIEWER_EMAILS.items():
-        if email:
-            df_reviewer = df[df['AssignedReviewer'] == reviewer]
-            if not df_reviewer.empty:
-                send_email(email, reviewer, df_reviewer, report_filepath, date_range)
-            else:
-                print(f"⚠ No assignments for {reviewer}, skipping email.")
-        else:
-            print(f"⚠ No email configured for {reviewer}")
+#     for reviewer, email in REVIEWER_EMAILS.items():
+#         if email:
+#             df_reviewer = df[df['AssignedReviewer'] == reviewer]
+#             if not df_reviewer.empty:
+#                 send_email(email, reviewer, df_reviewer, report_filepath, date_range)
+#             else:
+#                 print(f"⚠ No assignments for {reviewer}, skipping email.")
+#         else:
+#             print(f"⚠ No email configured for {reviewer}")
 
+def send_notifications(df, report_filepath, date_range):
+    """Send email notification with full report to the configured Gmail."""
+    print("\n--- Sending Email Notification ---")
+    
+    to_email = 'abc123@gmail.com'
+    
+    msg = MIMEMultipart()
+    msg['From'] = EMAIL_CONFIG['from_email']
+    msg['To'] = to_email
+    msg['Subject'] = f"Literature Review Assignments - {datetime.now().strftime('%d %b %Y')}"
+    
+    # Build summary for all reviewers
+    summary_lines = []
+    for reviewer in df['AssignedReviewer'].unique():
+        df_reviewer = df[df['AssignedReviewer'] == reviewer]
+        article_count = df_reviewer['ArticleId'].nunique()
+        product_count = df_reviewer['ProductName'].nunique()
+        summary_lines.append(f"<li><strong>{reviewer}:</strong> {article_count} articles, {product_count} products</li>")
+    
+    body = f"""
+    <html>
+    <body>
+    <p>Hello,</p>
+    
+    <p>The weekly literature review assignments are ready.</p>
+    
+    <h3>Assignment Summary:</h3>
+    <ul>
+        {''.join(summary_lines)}
+    </ul>
+    <p><strong>Data Date:</strong> {date_range[0][:10]}</p>
+    
+    <p>Please find the detailed assignment in the attached Excel file.</p>
+    
+    <p>Best regards,<br>
+    Automated Assignment System</p>
+    </body>
+    </html>
+    """
+    
+    msg.attach(MIMEText(body, 'html'))
+    
+    # Attach Excel file
+    with open(report_filepath, 'rb') as attachment:
+        part = MIMEBase('application', 'octet-stream')
+        part.set_payload(attachment.read())
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition', f'attachment; filename="{os.path.basename(report_filepath)}"')
+        msg.attach(part)
+    
+    # Send via Gmail SMTP
+    try:
+        with smtplib.SMTP(EMAIL_CONFIG['smtp_host'], EMAIL_CONFIG['smtp_port']) as server:
+            server.starttls()
+            server.login(EMAIL_CONFIG['smtp_user'], EMAIL_CONFIG['smtp_password'])
+            server.sendmail(EMAIL_CONFIG['from_email'], to_email, msg.as_string())
+        print(f"✓ Email sent to {to_email}")
+    except Exception as e:
+        print(f"✗ Failed to send email: {e}")
 
 # =============================================================================
 # MAIN EXECUTION

@@ -42,20 +42,10 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          
-          # Email credentials (from GitHub Secrets)
-          SMTP_HOST: ${{ secrets.SMTP_HOST }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-          
-          # Reviewer email addresses (from GitHub Secrets)
-          REVIEWER_1_EMAIL: ${{ secrets.REVIEWER_1_EMAIL }}
-          REVIEWER_2_EMAIL: ${{ secrets.REVIEWER_2_EMAIL }}
-          REVIEWER_3_EMAIL: ${{ secrets.REVIEWER_3_EMAIL }}
-          REVIEWER_4_EMAIL: ${{ secrets.REVIEWER_4_EMAIL }}
-          REVIEWER_5_EMAIL: ${{ secrets.REVIEWER_5_EMAIL }}
+
+          # Gmail credentials (from GitHub Secrets)
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           
         run: |
           python scripts/reviewer_assignment.py
