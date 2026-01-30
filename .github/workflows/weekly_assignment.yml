@@ -6,7 +6,7 @@ name: Weekly Reviewer Assignment
 on:
   # Scheduled trigger - Every 5 minutes (for testing)
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '0 * * * *'
   
   # Manual trigger (for testing)
   workflow_dispatch:
