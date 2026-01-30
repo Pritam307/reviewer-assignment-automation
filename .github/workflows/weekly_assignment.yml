@@ -4,10 +4,9 @@
 name: Weekly Reviewer Assignment
 
 on:
-  # Scheduled trigger - Cron syntax (UTC timezone)
-  # 10:00 AM IST = 4:30 AM UTC
+  # Scheduled trigger - Every 5 minutes (for testing)
   schedule:
-    - cron: '15 4 * * 1'  # Every Monday at 4:30 AM UTC (10:00 AM IST)
+    - cron: '*/5 * * * *'
   
   # Manual trigger (for testing)
   workflow_dispatch:

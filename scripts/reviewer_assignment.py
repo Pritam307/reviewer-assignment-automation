@@ -23,8 +23,8 @@ import mysql.connector
 from mysql.connector import Error
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-
-
+from dotenv import load_dotenv
+load_dotenv()
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
@@ -375,7 +375,7 @@ def send_notifications(df, report_filepath, date_range):
     """Send email notification with full report to the configured Gmail."""
     print("\n--- Sending Email Notification ---")
     
-    to_email = 'abc123@gmail.com'
+    to_email = 'pritam.kundilya@kretacx.com'
     
     msg = MIMEMultipart()
     msg['From'] = EMAIL_CONFIG['from_email']
